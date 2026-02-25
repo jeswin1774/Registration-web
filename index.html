@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jestech Workshop Registration</title>  <!-- Firebase v9 modular -->  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+
+    // ✅ FIREBASE CONFIG (ADDED)
+    const firebaseConfig = {
+      apiKey: "AIzaSyB31gP1yxrwvJqYg4hNVN22Ya7VfdDNOI8",
+      authDomain: "registration-link-e2dc4.firebaseapp.com",
+      projectId: "registration-link-e2dc4",
+      storageBucket: "registration-link-e2dc4.firebasestorage.app",
+      messagingSenderId: "98636378013",
+      appId: "1:98636378013:web:6d95ed990611cfdba64974",
+      measurementId: "G-51P4TP0YNK"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    getAnalytics(app);
+
+    // Wait for DOM
+    window.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("regForm");
+      const msg = document.getElementById("msg");
+
+      // ✅ Registration submit
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const data = {
+          name: document.getElementById("name").value.trim(),
+          regno: document.getElementById("regno").value.trim(),
+          gender: document.getElementById("gender").value,
+          time: new Date()
+        };
+
+        try {
+          await addDoc(collection(db, "registrations"), data);
+          msg.innerText = "✅ Registered successfully";
+          form.reset();
+        } catch (err) {
+          msg.innerText = "❌ Error saving data";
+          console.error(err);
+        }
+      });
+
+      // ✅ Admin login
+      window.adminLogin = async function () {
+        const u = document.getElementById("adminUser").value;
+        const p = document.getElementById("adminPass").value;
+
+        if (u === "jestech" && p === "godsgrace") {
+          document.getElementById("adminPanel").style.display = "block";
+          await loadData();
+        } else {
+          alert("Invalid admin credentials");
+        }
+      };
+
+      // ✅ Load table data
+      async function loadData() {
+        const q = query(collection(db, "registrations"), orderBy("time", "desc"));
+        const snapshot = await getDocs(q);
+        const body = document.getElementById("tableBody");
+        body.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          body.innerHTML += `
+            <tr>
+              <td>${d.name}</td>
+              <td>${d.regno}</td>
+              <td>${d.gender}</td>
+            </tr>
+          `;
+        });
+      }
+    });
+  </script>  <style>
+    * {margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;}
+    body {background:linear-gradient(135deg,#0f172a,#1e293b);color:#111;min-height:100vh;}
+    header {background:#020617;color:white;padding:20px;text-align:center;font-size:24px;font-weight:600;letter-spacing:1px;}
+    .container {max-width:900px;margin:40px auto;background:white;padding:30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+    h2 {text-align:center;margin-bottom:20px;color:#0f172a;}
+    form {display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+    form .full {grid-column:span 2;}
+    label {font-weight:600;font-size:14px;display:block;margin-bottom:6px;}
+    input,select {width:100%;padding:10px 12px;border-radius:8px;border:1px solid #cbd5e1;font-size:14px;}
+    button {background:#2563eb;color:white;border:none;padding:12px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:.2s;}
+    button:hover {background:#1d4ed8;}
+    .admin-panel {display:none;margin-top:40px;}
+    table {width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}
+    th,td {border:1px solid #e2e8f0;padding:10px;text-align:center;}
+    th {background:#0f172a;color:white;}
+    footer {text-align:center;color:white;padding:20px;margin-top:40px;font-size:14px;}
+    .login-box {max-width:400px;margin:20px auto;background:#f8fafc;padding:20px;border-radius:12px;box-shadow:inset 0 0 0 1px #e2e8f0;}
+    .success {color:green;text-align:center;margin-top:10px;font-weight:600;}
+  </style></head>
+<body><header>
+  JACSICE ECE Department – Frontend Developer Workshop
+</header><div class="container">
+  <h2>Student Registration</h2>  <form id="regForm">
+    <div>
+      <label>Name</label>
+      <input type="text" id="name" required />
+    </div><div>
+  <label>Register Number</label>
+  <input type="text" id="regno" required />
+</div>
+
+<div class="full">
+  <label>Gender</label>
+  <select id="gender" required>
+    <option value="">Select</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+  </select>
+</div>
+
+<div class="full">
+  <button type="submit">Register Now</button>
+</div>
+
+  </form>  <div id="msg" class="success"></div>  <div class="login-box">
+    <h2>Admin Login</h2>
+    <input type="text" id="adminUser" placeholder="Username" />
+    <br /><br />
+    <input type="password" id="adminPass" placeholder="Password" />
+    <br /><br />
+    <button onclick="adminLogin()">Login</button>
+  </div>  <div class="admin-panel" id="adminPanel">
+    <h2>Registered Students</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Register No</th>
+          <th>Gender</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div><footer>
+  Conducted by Jestech Company • For workshop details visit jestech.vercel.app
+</footer></body>
+</html>
