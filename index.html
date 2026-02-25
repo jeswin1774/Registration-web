@@ -1,13 +1,1019 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jestech Workshop Registration</title>  <!-- Firebase v9 modular -->  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+  <title>Frontend Developer Workshop — JACSICE ECE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --bg: #05070f;
+      --surface: #0c1120;
+      --surface2: #111827;
+      --border: rgba(255,255,255,0.07);
+      --accent: #3b82f6;
+      --accent-glow: rgba(59,130,246,0.25);
+      --accent2: #06b6d4;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --danger-glow: rgba(239,68,68,0.2);
+    }
 
-    // ✅ FIREBASE CONFIG (ADDED)
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* ─── AMBIENT GLOW ─── */
+    .ambient {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(59,130,246,0.12), transparent 70%);
+      top: -200px; left: -200px;
+    }
+    .ambient-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%);
+      bottom: 0; right: -150px;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      background: rgba(5,7,15,0.85);
+      backdrop-filter: blur(20px);
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+    }
+
+    .logo-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .logo-text span {
+      display: block;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(6,182,212,0.1);
+      border: 1px solid rgba(6,182,212,0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      z-index: 5;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 40px 60px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      width: 40px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 480px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main {
+      position: relative;
+      z-index: 5;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 1023px) {
+      .main { grid-template-columns: 1fr; padding: 0 20px 60px; }
+      .hero { padding: 50px 20px 40px; }
+      header { padding: 0 20px; }
+      /* Hidden by default on mobile — unlocked via secret 5-tap */
+      .admin-divider,
+      .admin-login-block { display: none; }
+      .admin-divider.unlocked,
+      .admin-login-block.unlocked { display: block; }
+      .admin-section { display: none; }
+      .admin-section.unlocked { display: block; padding: 0 20px; }
+    }
+
+    .secret-trigger { cursor: default; user-select: none; -webkit-user-select: none; }
+
+    .tap-dots {
+      display: none;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    @media (max-width: 1023px) { .tap-dots { display: flex; } }
+
+    .tap-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.13);
+      transition: background 0.2s, transform 0.15s;
+    }
+    .tap-dot.active { background: var(--accent); transform: scale(1.4); }
+
+    /* ─── CARD ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent);
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* ─── FORM ─── */
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    input::placeholder {
+      color: #374151;
+    }
+
+    select option {
+      background: #1e293b;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 13px;
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #1d4ed8);
+      color: white;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(59,130,246,0.4);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #1e293b;
+    }
+
+    /* ─── SUCCESS / ERROR MSG ─── */
+    .msg {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+
+    .msg.success {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: var(--success);
+      display: block;
+    }
+
+    .msg.error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: var(--danger);
+      display: block;
+    }
+
+    /* ─── INFO CARD ─── */
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(6,182,212,0.4), transparent);
+    }
+
+    .info-item {
+      display: flex;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+
+    .info-item:last-child { border-bottom: none; }
+
+    .info-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(6,182,212,0.1));
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .info-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* ─── ADMIN PANEL ─── */
+    .admin-section {
+      position: relative;
+      z-index: 5;
+      max-width: 1100px;
+      margin: 0 auto 80px;
+      padding: 0 40px;
+    }
+
+    @media (max-width: 768px) {
+      .admin-section { padding: 0 20px; }
+    }
+
+    .admin-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .admin-panel::before {
+      display: none;
+    }
+
+    .panel-header {
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: gap;
+      gap: 16px;
+    }
+
+    .panel-header-left h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .panel-header-left p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .count-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ─── TABLE ─── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: rgba(255,255,255,0.02);
+    }
+
+    th {
+      padding: 14px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tbody tr {
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255,255,255,0.025);
+    }
+
+    .gender-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .gender-male   { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+    .gender-female { background: rgba(236,72,153,0.12); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.2); }
+    .gender-other  { background: rgba(234,179,8,0.12); color: #fde68a; border: 1px solid rgba(234,179,8,0.2); }
+
+    .sno {
+      color: var(--muted);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-cell {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .btn-pdf {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.25);
+      white-space: nowrap;
+    }
+
+    .btn-pdf:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+    }
+
+    /* ─── PRINT STYLES ─── */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      body { background: white !important; color: #111 !important; font-family: 'DM Sans', Arial, sans-serif; }
+      body::before { display: none; }
+
+      .ambient, header, .hero, .main, footer, .ambient-1, .ambient-2 { display: none !important; }
+
+      .admin-section {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .admin-panel {
+        display: block !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: white !important;
+      }
+
+      .print-header {
+        display: block !important;
+        text-align: center;
+        padding: 24px 0 20px;
+        border-bottom: 2px solid #1e293b;
+        margin-bottom: 20px;
+      }
+
+      .print-header h2 {
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+
+      .print-header p {
+        font-size: 13px;
+        color: #64748b;
+      }
+
+      .panel-header {
+        padding: 0 0 16px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        margin-bottom: 16px;
+        background: transparent !important;
+      }
+
+      .panel-header-left h3 { color: #0f172a !important; font-size: 16px !important; }
+      .panel-header-left p  { color: #64748b !important; }
+
+      .count-badge {
+        background: #0f172a !important;
+        color: white !important;
+        font-size: 12px !important;
+      }
+
+      .btn-pdf { display: none !important; }
+
+      table { font-size: 12px !important; }
+
+      th {
+        background: #0f172a !important;
+        color: white !important;
+        padding: 10px 14px !important;
+        text-align: left !important;
+      }
+
+      td {
+        padding: 10px 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #111 !important;
+      }
+
+      .sno { color: #64748b !important; }
+
+      .gender-pill {
+        padding: 2px 8px !important;
+        border-radius: 20px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+      }
+
+      .gender-male   { background: #dbeafe !important; color: #1d4ed8 !important; border: 1px solid #bfdbfe !important; }
+      .gender-female { background: #fce7f3 !important; color: #be185d !important; border: 1px solid #fbcfe8 !important; }
+      .gender-other  { background: #fef9c3 !important; color: #92400e !important; border: 1px solid #fde68a !important; }
+
+      .time-cell { color: #64748b !important; }
+      .del-btn   { display: none !important; }
+
+      tr:hover { background: transparent !important; }
+
+      .print-footer {
+        display: block !important;
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 11px;
+        color: #94a3b8;
+      }
+    }
+
+    .print-header, .print-footer { display: none; }
+
+    .del-btn {
+      background: transparent;
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .del-btn:hover {
+      background: var(--danger-glow);
+      border-color: rgba(239,68,68,0.5);
+    }
+
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-state p { color: var(--muted); font-size: 14px; }
+
+    /* ─── LOADING SPINNER ─── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 5;
+      border-top: 1px solid var(--border);
+      padding: 28px 40px;
+      text-align: center;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .footer-by {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .footer-by strong {
+      color: var(--text);
+    }
+
+    .footer-link {
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(59,130,246,0.3);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .footer-link:hover {
+      color: var(--accent2);
+      border-color: rgba(6,182,212,0.4);
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 24px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient ambient-1"></div>
+  <div class="ambient ambient-2"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-mark">
+        <div class="logo-icon">J</div>
+        <div class="logo-text">
+          <span>JACSICE — ECE Dept.</span>
+          Workshop Registration Portal
+        </div>
+      </div>
+      <div class="badge">Live Registration Open</div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">Conducted by Jestech Company</div>
+    <h1>Frontend Developer<br/>Workshop 2025</h1>
+    <p class="hero-sub">
+      Register your seat for an intensive hands-on workshop covering modern frontend development principles and practices.
+    </p>
+  </section>
+
+  <!-- MAIN GRID -->
+  <div class="main">
+
+    <!-- REGISTRATION CARD -->
+    <div class="card">
+      <div class="card-title">Student Registration</div>
+      <p class="card-desc">Fill in your details below to secure your spot at the workshop.</p>
+
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="e.g. Arun Kumar" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label>Register Number</label>
+        <input type="text" id="regno" placeholder="e.g. 22ECE001" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label>Gender</label>
+        <div class="select-wrap">
+          <select id="gender">
+            <option value="">Select gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="regBtn" onclick="register()">Register Now</button>
+      <div class="msg" id="regMsg"></div>
+
+      <div class="admin-divider divider"><span>Admin Access</span></div>
+
+      <div class="admin-login-block">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="adminUser" placeholder="Admin username" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="adminPass" placeholder="Admin password" />
+        </div>
+
+        <button class="btn btn-secondary" onclick="adminLogin()">Access Admin Panel</button>
+        <div class="msg" id="loginMsg"></div>
+        <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5;">
+          🖥️ Admin panel is available on desktop only
+        </p>
+      </div>
+    </div>
+
+    <!-- INFO CARD -->
+    <div class="info-card">
+      <div class="card-title" style="margin-bottom: 4px;">Workshop Details</div>
+      <p class="card-desc">Everything you need to know before registering.</p>
+
+      <div class="info-item">
+        <div class="info-icon">🏫</div>
+        <div>
+          <div class="info-label">Venue</div>
+          <div class="info-value">JACSICE — ECE Department</div>
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-icon">💻</div>
+        <div>
+          <div class="info-label">Topic</div>
+          <div class="info-value">Frontend Development — HTML, CSS &amp; JavaScript</div>
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-icon">🏢</div>
+        <div>
+          <div class="info-label">Conducted By</div>
+          <div class="info-value">Jestech Company</div>
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-icon">🎓</div>
+        <div>
+          <div class="info-label">Eligibility</div>
+          <div class="info-value">ECE Department Students</div>
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-icon">🌐</div>
+        <div>
+          <div class="info-label">More Details</div>
+          <div class="info-value">
+            <a href="https://jestech.vercel.app" target="_blank" class="footer-link">jestech.vercel.app</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-icon">📋</div>
+        <div>
+          <div class="info-label">Registration</div>
+          <div class="info-value">Free — Limited seats available</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <section class="admin-section">
+    <div class="admin-panel" id="adminPanel">
+
+      <!-- Visible only during print/PDF -->
+      <div class="print-header">
+        <h2>JACSICE — ECE Department</h2>
+        <p>Frontend Developer Workshop 2025 &nbsp;·&nbsp; Conducted by Jestech Company</p>
+        <p style="margin-top:4px;">Registered Students List &nbsp;·&nbsp; Printed on <span id="printDate"></span></p>
+      </div>
+
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h3>Registered Students</h3>
+          <p>All submitted registrations in real-time</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div id="countBadge" class="count-badge">Loading…</div>
+          <button class="btn-pdf" onclick="downloadPDF()" title="Download as PDF for printing">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Register No.</th>
+              <th>Gender</th>
+              <th>Registered At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="icon">📭</div>
+          <p>No registrations yet. They'll appear here as students sign up.</p>
+        </div>
+      </div>
+
+      <!-- Visible only during print/PDF -->
+      <div class="print-footer">
+        Generated from the JACSICE Workshop Registration Portal &nbsp;·&nbsp; jestech.vercel.app
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-by">Conducted by <strong class="secret-trigger" id="secretTrigger">Jestech Company</strong></p>
+      <p class="footer-by">
+        For workshop details, visit&nbsp;
+        <a href="https://jestech.vercel.app" target="_blank" class="footer-link">jestech.vercel.app</a>
+      </p>
+      <!-- Secret tap progress dots — mobile only -->
+      <div class="tap-dots" id="tapDots">
+        <div class="tap-dot" id="d0"></div>
+        <div class="tap-dot" id="d1"></div>
+        <div class="tap-dot" id="d2"></div>
+        <div class="tap-dot" id="d3"></div>
+        <div class="tap-dot" id="d4"></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─── FIREBASE INIT ───
     const firebaseConfig = {
       apiKey: "AIzaSyB31gP1yxrwvJqYg4hNVN22Ya7VfdDNOI8",
       authDomain: "registration-link-e2dc4.firebaseapp.com",
@@ -18,135 +1024,180 @@
       measurementId: "G-51P4TP0YNK"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    getAnalytics(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    // Wait for DOM
-    window.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("regForm");
-      const msg = document.getElementById("msg");
+    // ─── HELPERS ───
+    function showMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'msg ' + type;
+      setTimeout(() => { el.className = 'msg'; el.textContent = ''; }, 4000);
+    }
 
-      // ✅ Registration submit
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    function formatTime(ts) {
+      if (!ts) return '—';
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
 
-        const data = {
-          name: document.getElementById("name").value.trim(),
-          regno: document.getElementById("regno").value.trim(),
-          gender: document.getElementById("gender").value,
-          time: new Date()
-        };
+    // ─── REGISTER ───
+    async function register() {
+      const name   = document.getElementById('name').value.trim();
+      const regno  = document.getElementById('regno').value.trim();
+      const gender = document.getElementById('gender').value;
 
-        try {
-          await addDoc(collection(db, "registrations"), data);
-          msg.innerText = "✅ Registered successfully";
-          form.reset();
-        } catch (err) {
-          msg.innerText = "❌ Error saving data";
-          console.error(err);
+      if (!name || !regno || !gender) {
+        showMsg('regMsg', '⚠️ Please fill in all fields.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('regBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Registering…';
+
+      try {
+        await db.collection('registrations').add({
+          name, regno, gender, time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showMsg('regMsg', '✅ Registered successfully! See you at the workshop.', 'success');
+        document.getElementById('name').value = '';
+        document.getElementById('regno').value = '';
+        document.getElementById('gender').value = '';
+        // refresh if admin panel open
+        if (document.getElementById('adminPanel').style.display !== 'none') loadData();
+      } catch (err) {
+        showMsg('regMsg', '❌ Registration failed. Try again.', 'error');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Register Now';
+      }
+    }
+
+    // ─── ADMIN LOGIN ───
+    function adminLogin() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value;
+
+      if (u === 'jestech' && p === 'godsgrace') {
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showMsg('loginMsg', '✅ Admin access granted.', 'success');
+        loadData();
+      } else {
+        showMsg('loginMsg', '❌ Invalid credentials. Try again.', 'error');
+      }
+    }
+
+    // ─── LOAD DATA ───
+    async function loadData() {
+      const body  = document.getElementById('tableBody');
+      const empty = document.getElementById('emptyState');
+      const badge = document.getElementById('countBadge');
+
+      body.innerHTML = '<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+      empty.style.display = 'none';
+
+      try {
+        const snap = await db.collection('registrations').orderBy('time', 'desc').get();
+        body.innerHTML = '';
+        badge.textContent = snap.size + ' Registered';
+
+        if (snap.empty) {
+          empty.style.display = 'block';
+          return;
         }
-      });
 
-      // ✅ Admin login
-      window.adminLogin = async function () {
-        const u = document.getElementById("adminUser").value;
-        const p = document.getElementById("adminPass").value;
-
-        if (u === "jestech" && p === "godsgrace") {
-          document.getElementById("adminPanel").style.display = "block";
-          await loadData();
-        } else {
-          alert("Invalid admin credentials");
-        }
-      };
-
-      // ✅ Load table data
-      async function loadData() {
-        const q = query(collection(db, "registrations"), orderBy("time", "desc"));
-        const snapshot = await getDocs(q);
-        const body = document.getElementById("tableBody");
-        body.innerHTML = "";
-
-        snapshot.forEach(doc => {
+        let i = 1;
+        snap.forEach(doc => {
           const d = doc.data();
+          const gClass = d.gender === 'Male' ? 'gender-male' : d.gender === 'Female' ? 'gender-female' : 'gender-other';
           body.innerHTML += `
             <tr>
-              <td>${d.name}</td>
-              <td>${d.regno}</td>
-              <td>${d.gender}</td>
-            </tr>
-          `;
+              <td class="sno">${i++}</td>
+              <td><strong>${escHtml(d.name)}</strong></td>
+              <td style="font-family:monospace;font-size:13px;">${escHtml(d.regno)}</td>
+              <td><span class="gender-pill ${gClass}">${escHtml(d.gender)}</span></td>
+              <td class="time-cell">${formatTime(d.time)}</td>
+              <td><button class="del-btn" onclick="deleteEntry('${doc.id}')">Delete</button></td>
+            </tr>`;
         });
+      } catch (err) {
+        body.innerHTML = '<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--danger)">Failed to load data.</td></tr>';
+        console.error(err);
+      }
+    }
+
+    // ─── DELETE ───
+    async function deleteEntry(id) {
+      if (!confirm('Delete this registration? This cannot be undone.')) return;
+      try {
+        await db.collection('registrations').doc(id).delete();
+        loadData();
+      } catch (err) {
+        alert('Delete failed. Please try again.');
+        console.error(err);
+      }
+    }
+
+    // ─── DOWNLOAD PDF (print dialog) ───
+    function downloadPDF() {
+      document.getElementById('printDate').textContent =
+        new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      window.print();
+    }
+
+    // ─── SANITIZE ───
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ─── ENTER KEY SUPPORT ───
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.activeElement.id === 'adminPass') adminLogin();
       }
     });
-  </script>  <style>
-    * {margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;}
-    body {background:linear-gradient(135deg,#0f172a,#1e293b);color:#111;min-height:100vh;}
-    header {background:#020617;color:white;padding:20px;text-align:center;font-size:24px;font-weight:600;letter-spacing:1px;}
-    .container {max-width:900px;margin:40px auto;background:white;padding:30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.2);}
-    h2 {text-align:center;margin-bottom:20px;color:#0f172a;}
-    form {display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-    form .full {grid-column:span 2;}
-    label {font-weight:600;font-size:14px;display:block;margin-bottom:6px;}
-    input,select {width:100%;padding:10px 12px;border-radius:8px;border:1px solid #cbd5e1;font-size:14px;}
-    button {background:#2563eb;color:white;border:none;padding:12px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:.2s;}
-    button:hover {background:#1d4ed8;}
-    .admin-panel {display:none;margin-top:40px;}
-    table {width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}
-    th,td {border:1px solid #e2e8f0;padding:10px;text-align:center;}
-    th {background:#0f172a;color:white;}
-    footer {text-align:center;color:white;padding:20px;margin-top:40px;font-size:14px;}
-    .login-box {max-width:400px;margin:20px auto;background:#f8fafc;padding:20px;border-radius:12px;box-shadow:inset 0 0 0 1px #e2e8f0;}
-    .success {color:green;text-align:center;margin-top:10px;font-weight:600;}
-  </style></head>
-<body><header>
-  JACSICE ECE Department – Frontend Developer Workshop
-</header><div class="container">
-  <h2>Student Registration</h2>  <form id="regForm">
-    <div>
-      <label>Name</label>
-      <input type="text" id="name" required />
-    </div><div>
-  <label>Register Number</label>
-  <input type="text" id="regno" required />
-</div>
 
-<div class="full">
-  <label>Gender</label>
-  <select id="gender" required>
-    <option value="">Select</option>
-    <option>Male</option>
-    <option>Female</option>
-    <option>Other</option>
-  </select>
-</div>
+    // ─── SECRET 5-TAP TO REVEAL ADMIN (mobile) ───
+    (function () {
+      const trigger  = document.getElementById('secretTrigger');
+      const dots     = [0,1,2,3,4].map(i => document.getElementById('d' + i));
+      let tapCount   = 0;
+      let resetTimer = null;
 
-<div class="full">
-  <button type="submit">Register Now</button>
-</div>
+      trigger.addEventListener('click', () => {
+        if (window.innerWidth >= 1024) return; // desktop already shows admin
 
-  </form>  <div id="msg" class="success"></div>  <div class="login-box">
-    <h2>Admin Login</h2>
-    <input type="text" id="adminUser" placeholder="Username" />
-    <br /><br />
-    <input type="password" id="adminPass" placeholder="Password" />
-    <br /><br />
-    <button onclick="adminLogin()">Login</button>
-  </div>  <div class="admin-panel" id="adminPanel">
-    <h2>Registered Students</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Register No</th>
-          <th>Gender</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
-</div><footer>
-  Conducted by Jestech Company • For workshop details visit jestech.vercel.app
-</footer></body>
+        clearTimeout(resetTimer);
+        tapCount++;
+
+        // light up dots
+        dots.forEach((d, i) => d.classList.toggle('active', i < tapCount));
+
+        if (tapCount >= 5) {
+          // UNLOCK
+          tapCount = 0;
+          dots.forEach(d => d.classList.remove('active'));
+
+          document.querySelector('.admin-divider').classList.add('unlocked');
+          document.querySelector('.admin-login-block').classList.add('unlocked');
+          document.querySelector('.admin-section').classList.add('unlocked');
+
+          document.querySelector('.admin-divider').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+          // small vibrate feedback if supported
+          if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+        } else {
+          // auto-reset after 2s inactivity
+          resetTimer = setTimeout(() => {
+            tapCount = 0;
+            dots.forEach(d => d.classList.remove('active'));
+          }, 2000);
+        }
+      });
+    })();
+  </script>
+</body>
 </html>
